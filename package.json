@@ -1,0 +1,25 @@
+{
+  "name": "rapid-inquirer",
+  "version": "0.0.1",
+  "description": "Streamline extension for inquirer to have less overhead",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonathanrevell/rapid-inquirer.git"
+  },
+  "author": "Jonathan Oaklyn",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jonathanrevell/rapid-inquirer/issues"
+  },
+  "homepage": "https://github.com/jonathanrevell/rapid-inquirer#readme",
+  "devDependencies": {
+    "inquirer": "^7.0.4"
+  },
+  "dependencies": {
+    "mustache": "^4.0.0"
+  }
+}
