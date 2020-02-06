@@ -1,14 +1,17 @@
 
 function promptsToBuildObject(obj, options) {
+    var answers;
     if(!options) {
         options = {};
     }
     var prompts = [];
     var keys = Object.keys(obj);
+    var subObjects = [];
 
-    keys.forEach(key => {
+    var buildFieldPrompt = function(target, key, layerOptions) {
         var type, promptType;
-        var val = obj[key];
+        var skipKey = false;
+        var val = target[key];
         if(val === undefined || val === null) {
             type = "string";    // No value defaults to string
             promptType = "input";
@@ -25,27 +28,51 @@ function promptsToBuildObject(obj, options) {
             type = "boolean";
             promptType = "confirm";
 
+        } else if(typeof val === "object" || val instanceof Object) {
+            skipKey = true;
+            subObjects.push({ key: key, obj: val });
         } else {
             type = "string";
             promptType = "input";
         }
 
 
-        if(!options.onlyEmptyFields || type === "boolean" || val === undefined || val === null || val === '') {
+        if(!skipKey && (!layerOptions.onlyEmptyFields || type === "boolean" || val === undefined || val === null || val === '')) {
             var p = {
                 type: promptType,
                 name: key,
-                message: options.fieldPrefix ? `${options.fieldPrefix}.${key}: ` : `${key}: `
+                message: layerOptions.fieldPrefix ? `${layerOptions.fieldPrefix}.${key}: ` : `${key}: `
             };
             if(val !== undefined && val !== null && val !== "") {
                 p.default = val;
             }
             prompts.push(p);
         }
+    };
+
+
+    keys.forEach(key => {
+        buildFieldPrompt(obj, key, options);
     });
  
     return this.prompt(prompts)
-        .then(answers => {
+        .then(results => {
+            answers = results;
+            return Promise.all(subObjects.map(sub => {
+                return buildNestedObject.call(this, answers, sub.key, sub.obj, options);
+            }));
+        })
+        .then(() => {
+            return answers;
+        });
+}
+
+function buildNestedObject(answers, key, nestedObj, options) {
+    var fieldPrefix = options.fieldPrefix ? `${options.fieldPrefix} ${key}` : `${key} `;
+    var nestedOptions = Object.assign({}, options, { fieldPrefix: fieldPrefix });
+    return this.promptsToBuildObject(nestedObj, nestedOptions)
+        .then(results => {
+            answers[key] = results;
             return answers;
         });
 }
